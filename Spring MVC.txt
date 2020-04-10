@@ -1,0 +1,123 @@
+                                                          Spring MVC
+                                                          ==========
+1.What is MVC Design pattern/Architecture?
+==========================================
+->Every layer is designed to have specific logics so place only those logic don't place any additional logic.
+->All the operations of application must be take place under the control or monitoring of controller servlet.
+->There can be multiple resources in view layer,multiple resources in model layer but there must be only 1 servlet acting 
+  as controller.This must be taken as front controller.
+->The view and model layer components must not interact with each other directly.They must interact through controller.
+
+2.Advantages of Place jsp files in WEB-INF folder
+=================================================
+->We can hide the jsp technology that is used in the web application development from enduser.(protected from hackers)
+->If jsp page is displaying request attributes given by servlet,the direct request to jsp will display ugly values.
+->If session is not logged out properly hackers can access previous session by appending sessionId to the request url of
+  jsp collected from browser history.
+->When jsp are placed inside WEB-INF folder the underlying server/container and other web components of web application 
+  access it directly even though it is not configured in web.xml 
+->In spring mvc application only welcome pages will be placed outside the WEB-INF Folder and remaining jsps are recommended 
+  to place inside WEB-INF folder for security reason. 
+
+3.What is Front-Controller?
+===========================
+->The special web component of web application that acts as entry point for all the request and applies all common system 
+  services for all the request like security, logging and etc is called front controller.
+->We take servlet for front controller.To make front controller traping and taking multiple request coming from clients we 
+  must configure it either with directory match or extension match url pattern.
+-> *.htm, *.http and etc are extension match url patterns.
+-> /x/* , /x/y/* and etc are directory match url pattern.
+->In struts ActionServlet is built-in front controller servlet.
+->In spring MVC DispatcherServlet is built-in front controller servlet.
+->Java classes of web application cannot take request directly from browser.So we make those request getting trapped by 
+  front controller to delegates the request to appropriate Java class.
+->We take ServletFilter as InterceptingFilter having optional services to apply on web app having the ability to enable or 
+  disable (like allowing only certain browser request and etc.)
+->Use FrontController to apply common system services on all the request (like security, logging and etc.)
+->Don't configure FrontController servlet with /* url pattern to allow certain request directly going to web comps without 
+  applying system services.
+->If needed we can place both FrontController and InterceptingFilters in one web application development.
+
+4.What is Controller class/Handler class?
+=========================================
+->In order to develop our controller/handler class we must take a class implementing org.springframework.web.servlet.mvc
+  .Controller(I) interface and should provide implementation for handleRequest (-,-) method having logic to process the 
+  request and to return ModelAndView object having logical view name.
+->It is mainly useful to render logical viewname and data that is required to display in view layer resource.
+->Placing b.logic/request processing logic in controller class is not recommended process. It is recommended to place such 
+  logics in service classes and communicate with them from controller class.
+->Spring API has supplied lots of built-in controller classes implementing "Controller" interface.
+->It is always recommended to develop our controller/handler class by extending from predefined XxxController classes. 
+  That means it is not recommended to develope same class by implementing Controller interface directly.
+->These controller classes are ability of handle the request coming from form pages, hyperlinks and from other form 
+  components.
+->Every controller/handler class must be configured in spring configuration file having bean id and that bean id also be 
+  mapped with incoming request url by using one or must other HandlerMapping.
+->Handler Mapping is responsible to map incoming request urls to handler classes(controller classes).
+->Some Pre-Defined Controller Classes are:
+(i)ParameterizableViewController
+(ii)UrLFileNameViewController
+(iii)AbstractController
+(iv)AbstractCommandController
+(v)SimpleFormController
+(vi)MultiActionController
+(vii)AbstractWizardFormController
+
+5.What is Command Class?
+========================
+->The java bean class that would be instiantate by spring mvc to store form data or form page data is called command class.
+ The command class properties names and the form page сomponent name must match. 
+
+6.What is HandlerMappings?
+==========================
+->Handler Mapping is a component that maps incoming request to controller/handler class.
+->Every HandlerMapping is a class that implement org.springframework.web.servlet.HandlerMapping(I) interface the most 
+  regularly used handlermapping class is "SimpleUrlHandlerMapping".
+->Different types of HandlerMappings:
+(i)BeanNameUrlHandlerMapping (default for xml configuration)
+(ii)SimpleUrlHandlerMapping
+(iii)ControllerClassNameHandlerMapping
+(iv)DefaultAnnotationHandlerMapping (default for annotation configration)
+
+7.What is View Resolver?
+========================
+->This view Resolver takes the logical view name given by controller class and resolves physical view name by adding 
+  prefixes,suffixes and returns View interface implementation class object back to DispatcherServlet having physical view
+  name.
+->DispatcherServlet class calls render() method on the given View implementation class object(physical view name) and 
+  this render() method passes the control to physical view resource.
+->All ViewResolvers implements "ViewResolver(I)" interface. Spring has supplied few predefined viewResolver classes. 
+  They are:
+(i)UrlBasedViewResolver
+(ii)InternalResourceViewResolver
+(iii)ResourceBundleViewResolver
+(iv)XmLViewResolver
+(v)BeanNameViewResolver
+
+8.Annotations
+=============
+(i) @Controller--->Configure java class as spring mvc controller class and spring bean.
+(ii) @RequestMapping--->To map incoming request urls with the methods of controller class based on the virtual path of 
+     request url.
+
+9.Spring MVC Application Flow
+=============================
+->First we deploy the Spring MVC Web apllication in the web server or application server.
+->Then Browser gives request to web application.
+->As front controller Dispatcherservlet which has extension match url or directory match url, traps and takes the request 
+  and applies the common system services like security and logging etc.
+->After that it handovers the request uri to the handler mapping component.Then Handler Mapping component decide the 
+  Handler class based on the incoming request uri.After getting the handler class beanId it returns the beanId to the 
+  DispatcherServlet.
+->DispatcherServlet passes the control to Handler class by call getBean() method on that bean id and creates the object of 
+  Handler class. After that it calls the business method of the Handler class on the Handler class object.
+->Handler class internally writes the received form data to command class object.
+->Handler class process the request and generates the output, if needed it also uses command object work with form data.
+  Sometimes handler class delegates the request to other external components like ejb, web services and etc.
+->Handler class returns logical view name back to DispatcherServlet.
+->After that DispatcherServlet keeps the result in the request scope and give the logical view name to the view resolver.
+->This viewResolver takes the logical view name given by DispatcherServlet and resolves physical view name by adding prefix,
+  suffix and returns the physical view name to the DispatcherServlet.
+->Then DispatcherServlet calls rander method on the view object,then controller goes to the physical view resource.
+->Then physical view resource executes the presentation logic and receives the result from the request scope and formats
+  the result and return the result to the browser.
